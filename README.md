@@ -1,3 +1,4 @@
+<pre>
 (setf x 1 y 2)  
 2  
 
@@ -57,3 +58,4 @@
 )  
 "default"  
 10  
+</pre>
