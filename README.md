@@ -1,4 +1,6 @@
 <pre>
+Example output:
+
 (setf x 1 y 2)  
 2  
 
