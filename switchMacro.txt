@@ -1,0 +1,83 @@
+;;; evalEach
+;;;   Parameters:
+;;;      L - list a item to evaluate
+;;;   Purpose:
+;;;      Uses the build-in EVAL function to evaluate each item in the list
+(defun evalEach (L)
+      (do ()
+         ( (null (cdr L) ) (EVAL (car L) ) )
+         (EVAL (car L))
+         (setf L (cdr L) )
+      )
+)
+
+;;; inList
+;;;   Parameters:
+;;;      item - item to search for
+;;;      L - list to search for item
+;;;   Purpose:
+;;;      Checks if an item is in the given list
+(defun inList (item L)
+      (cond ( (null L) NIL )
+            ( (eql item (car L)) T )
+            ( T   (inList item (cdr L)) )
+      )   
+)
+
+;;; SELECT
+;;;   Parameters:
+;;;      expr - expression to evaluate
+;;;      whens - the when list
+;;;   Purpose:
+;;;      Create a select statment
+;;;   Notes:
+;;;      The macro evaluates the expression and stores the result in a variable.
+;;;      Then it uses a do loop to loop through the when list. For each iteration 
+;;;      it uses the inList function to see if the expr varible is contained in 
+;;;      the valueList. If it is then it executes the following statments. It uses
+;;;      the evalEach function to evaluate each of the statements.
+;;;   Example:
+;;;      > (setf X 10)
+;;;      > 10
+;;;      > (SELECT (- X 4)
+;;;      >     (when (6 8)
+;;;      >        (print "even")
+;;;      >        X
+;;;      >     )
+;;;      >     (default
+;;;      >        (print "default")
+;;;      >     )
+;;;      > )
+;;;      > "even"
+;;;      > 10
+;;;   Expansion:
+;;;      > (macroexpand-1 '(select (- x 4)
+;;;      >                    (when  (6 8)
+;;;      >                       (print "even")
+;;;      >                       X
+;;;      >                    )
+;;;      >                    (default
+;;;      >                       (print "default")
+;;;      >                    )
+;;;      >                 )
+;;;      > )
+;;;      > (let ((G001 (EVAL '(- X 4))))
+;;;      >     (do ((G002 '((when (6 8) (print "even") X) (default (print "default"))) (cdr G002)))
+;;;      >           ((NULL G002) NIL)
+;;;      >           (cond ( (eql 'DEFAULT (caar G002)) (return (evalEach (cdar G002))) )
+;;;      >                 ( (inList G001 (cadar G002)) (return (evalEach (cddar G002))) )
+;;;      >           )
+;;;      >     )
+;;;      > )
+(defmacro SELECT (expr &rest whens)
+      (let ((e (gensym)) (w (gensym)))
+         `(let ((,e (EVAL ',expr)))
+            (do ((,w ',whens (cdr ,w)))
+                  ((null ,w) NIL)
+                  (cond ( (eql 'default (caar ,w)) (return (evalEach (cdar ,w))) )
+                        ( (inList ,e (cadar ,w)) (return (evalEach (cddar ,w))) )
+                  )
+            )  
+         )
+      )
+)
